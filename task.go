@@ -42,6 +42,8 @@ func newTask() interface{} {
 在worker运行满的时候，task临时添加进全局队列
 等待worker任意一个就绪，每次worker就绪后，先检查全局队列，然后放入就绪队列
 
+todo 优化全局队列 性能 减少并发处理锁开销 可以一次获取多个放入worker 调整worker结构
+
 */
 // taskList ==========================================================================
 type taskList struct {

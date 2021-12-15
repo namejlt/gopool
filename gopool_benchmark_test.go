@@ -23,7 +23,6 @@
 package gopool
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"testing"
@@ -43,7 +42,6 @@ func demoFunc() {
 
 func demoPoolFunc(args interface{}) {
 	n := args.(int)
-	fmt.Println(n)
 	time.Sleep(time.Duration(n) * time.Millisecond)
 }
 

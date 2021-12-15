@@ -23,7 +23,6 @@
 package gopool
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -62,16 +61,13 @@ func TestPoolWaitToGetWorkerSimple(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-		fmt.Println("i", i)
 		param := i
 		_ = p.Submit(nil, func() {
 			demoPoolFunc(param)
 			wg.Done()
 		})
 	}
-	fmt.Println("wait")
 	wg.Wait()
-	fmt.Println("wait ok~!!!!!")
 	t.Logf("pool, running workers number:%d", p.Running())
 	mem := runtime.MemStats{}
 	runtime.ReadMemStats(&mem)
@@ -137,7 +133,7 @@ func TestNoPool(t *testing.T) {
 	t.Logf("memory usage:%d MB", curMem)
 }
 
-func TestPool(t *testing.T) {
+func TestDefaultPool(t *testing.T) {
 	defer Release()
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {
