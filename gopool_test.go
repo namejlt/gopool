@@ -23,6 +23,7 @@
 package gopool
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -46,17 +47,41 @@ const (
 
 const (
 	Param    = 100
-	AntsSize = 1000
+	Size     = 1000
 	TestSize = 10000
 	n        = 100000
 )
 
 var curMem uint64
 
-// TestAntsPoolWaitToGetWorker is used to test waiting to get worker.
-func TestAntsPoolWaitToGetWorker(t *testing.T) {
+// TestPoolWaitToGetWorkerSimple is used to test waiting to get worker.
+func TestPoolWaitToGetWorkerSimple(t *testing.T) {
 	var wg sync.WaitGroup
-	p, _ := NewPool(AntsSize)
+	p, _ := NewPool(Size)
+	defer p.Release()
+
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		fmt.Println("i", i)
+		param := i
+		_ = p.Submit(nil, func() {
+			demoPoolFunc(param)
+			wg.Done()
+		})
+	}
+	fmt.Println("wait")
+	wg.Wait()
+	fmt.Println("wait ok~!!!!!")
+	t.Logf("pool, running workers number:%d", p.Running())
+	mem := runtime.MemStats{}
+	runtime.ReadMemStats(&mem)
+	curMem = mem.TotalAlloc/MiB - curMem
+	t.Logf("memory usage:%d MB", curMem)
+}
+
+func TestPoolWaitToGetWorkerPreMalloc(t *testing.T) {
+	var wg sync.WaitGroup
+	p, _ := NewPool(Size, WithPreAlloc(true))
 	defer p.Release()
 
 	for i := 0; i < n; i++ {
@@ -74,32 +99,12 @@ func TestAntsPoolWaitToGetWorker(t *testing.T) {
 	t.Logf("memory usage:%d MB", curMem)
 }
 
-func TestAntsPoolWaitToGetWorkerPreMalloc(t *testing.T) {
-	var wg sync.WaitGroup
-	p, _ := NewPool(AntsSize, WithPreAlloc(true))
-	defer p.Release()
-
-	for i := 0; i < n; i++ {
-		wg.Add(1)
-		_ = p.Submit(nil, func() {
-			demoPoolFunc(Param)
-			wg.Done()
-		})
-	}
-	wg.Wait()
-	t.Logf("pool, running workers number:%d", p.Running())
-	mem := runtime.MemStats{}
-	runtime.ReadMemStats(&mem)
-	curMem = mem.TotalAlloc/MiB - curMem
-	t.Logf("memory usage:%d MB", curMem)
-}
-
-// TestAntsPoolGetWorkerFromCache is used to test getting worker from sync.Pool.
-func TestAntsPoolGetWorkerFromCache(t *testing.T) {
+// TestPoolGetWorkerFromCache is used to test getting worker from sync.Pool.
+func TestPoolGetWorkerFromCache(t *testing.T) {
 	p, _ := NewPool(TestSize)
 	defer p.Release()
 
-	for i := 0; i < AntsSize; i++ {
+	for i := 0; i < Size; i++ {
 		_ = p.Submit(nil, demoFunc)
 	}
 	time.Sleep(2 * DefaultCleanIntervalTime)
@@ -132,7 +137,7 @@ func TestNoPool(t *testing.T) {
 	t.Logf("memory usage:%d MB", curMem)
 }
 
-func TestAntsPool(t *testing.T) {
+func TestPool(t *testing.T) {
 	defer Release()
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {

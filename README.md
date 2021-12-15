@@ -26,4 +26,10 @@ worker中包含task channel，添加task和处理task
 
 ```
 
+### 参考
+
+1. [https://github.com/panjf2000/ants](https://github.com/panjf2000/ants)
+2. [https://github.com/valyala/fasthttp](https://github.com/valyala/fasthttp)
+3. [https://github.com/bytedance/gopkg/tree/develop/util/gopool](https://github.com/bytedance/gopkg/tree/develop/util/gopool)
+
 

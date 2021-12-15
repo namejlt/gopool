@@ -23,6 +23,7 @@
 package gopool
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"testing"
@@ -32,7 +33,7 @@ import (
 const (
 	RunTimes           = 1000000
 	BenchParam         = 10
-	BenchAntsSize      = 200000
+	BenchSize          = 200000
 	DefaultExpiredTime = 10 * time.Second
 )
 
@@ -42,6 +43,7 @@ func demoFunc() {
 
 func demoPoolFunc(args interface{}) {
 	n := args.(int)
+	fmt.Println(n)
 	time.Sleep(time.Duration(n) * time.Millisecond)
 }
 
@@ -77,7 +79,7 @@ func BenchmarkGoroutines(b *testing.B) {
 
 func BenchmarkSemaphore(b *testing.B) {
 	var wg sync.WaitGroup
-	sema := make(chan struct{}, BenchAntsSize)
+	sema := make(chan struct{}, BenchSize)
 
 	for i := 0; i < b.N; i++ {
 		wg.Add(RunTimes)
@@ -93,9 +95,9 @@ func BenchmarkSemaphore(b *testing.B) {
 	}
 }
 
-func BenchmarkAntsPool(b *testing.B) {
+func BenchmarkPool(b *testing.B) {
 	var wg sync.WaitGroup
-	p, _ := NewPool(BenchAntsSize, WithExpiryDuration(DefaultExpiredTime))
+	p, _ := NewPool(BenchSize, WithExpiryDuration(DefaultExpiredTime))
 	defer p.Release()
 
 	b.StartTimer()
@@ -121,7 +123,7 @@ func BenchmarkGoroutinesThroughput(b *testing.B) {
 }
 
 func BenchmarkSemaphoreThroughput(b *testing.B) {
-	sema := make(chan struct{}, BenchAntsSize)
+	sema := make(chan struct{}, BenchSize)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < RunTimes; j++ {
 			sema <- struct{}{}
@@ -133,8 +135,8 @@ func BenchmarkSemaphoreThroughput(b *testing.B) {
 	}
 }
 
-func BenchmarkAntsPoolThroughput(b *testing.B) {
-	p, _ := NewPool(BenchAntsSize, WithExpiryDuration(DefaultExpiredTime))
+func BenchmarkPoolThroughput(b *testing.B) {
+	p, _ := NewPool(BenchSize, WithExpiryDuration(DefaultExpiredTime))
 	defer p.Release()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {

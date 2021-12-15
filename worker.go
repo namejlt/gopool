@@ -42,9 +42,11 @@ func (w *worker) run() {
 			if ok := w.pool.revertWorker(w); !ok { //进入就绪worker队列成功 继续for循环
 				return
 			} else {
-				if !w.pool.taskList.isEmpty() { //辅助取出执行
+				for !w.pool.taskList.isEmpty() { //并发辅助取出执行
 					f = w.pool.taskList.detach()
-					f.f()
+					if f != nil {
+						f.f()
+					}
 				}
 			}
 		}

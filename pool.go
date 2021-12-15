@@ -174,6 +174,8 @@ func (p *Pool) retrieveWorker() (w *worker) {
 		// then just spawn a new worker goroutine.
 		p.lock.Unlock()
 		spawnWorker()
+	} else {
+		p.lock.Unlock()
 	}
 	return
 }
@@ -185,20 +187,14 @@ func (p *Pool) revertWorker(worker *worker) bool {
 	}
 	worker.recycleTime = time.Now()
 	p.lock.Lock()
-
-	// To avoid memory leaks, add a double check in the lock scope.
-	// Issue: https://github.com/panjf2000/ants/issues/113
+	defer p.lock.Unlock()
 	if p.IsClosed() {
-		p.lock.Unlock()
 		return false
 	}
 
 	err := p.workers.insert(worker)
 	if err != nil {
-		p.lock.Unlock()
 		return false
 	}
-
-	p.lock.Unlock()
 	return true
 }
